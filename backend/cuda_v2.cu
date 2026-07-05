@@ -193,7 +193,7 @@ int main()
 
 
     cudaMemcpy(particles, d_particles, N * sizeof(Particle), cudaMemcpyDeviceToHost);
-    printf("hello world");
+    fwrite(particles,sizeof(Particle),N,stdout);
 
     return 0;
 }
