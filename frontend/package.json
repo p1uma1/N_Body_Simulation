@@ -1,0 +1,17 @@
+{
+  "name": "simulation",
+  "version": "1.0.0",
+  "description": "3d simulation of particles",
+  "license": "ISC",
+  "author": "p1uma1",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "dev":"vite"
+  },
+  "dependencies": {
+    "three": "^0.185.1",
+    "vite": "^8.1.3"
+  }
+}
