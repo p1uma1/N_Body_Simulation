@@ -18,10 +18,11 @@ const float EPS = 1e-9f;
 
 struct Particle
 {
+    float mass, radius; 
     float x, y, z;    // Position
     float vx, vy, vz; // Velocity
     float ax, ay, az; // Acceleration
-    float mass;       // Mass
+          // Mass
 };
 
 struct Arg
@@ -33,96 +34,7 @@ struct Arg
 
 struct Particle particles[N];
 
-void load_input(struct Particle particles[], int n, const char *filename)
-{
-    struct Particle base[INPUT_SIZE];
 
-    FILE *file = fopen(filename, "r");
-    if (file == NULL)
-    {
-        perror("Error opening file");
-        exit(1);
-    }
-
-    char line[256];
-    fgets(line, sizeof(line), file); // skip header
-
-    for (int i = 0; i < INPUT_SIZE; i++)
-    {
-        if (fgets(line, sizeof(line), file) == NULL)
-        {
-            printf("File ended early at line %d\n", i);
-            exit(1);
-        }
-
-        int result = sscanf(line, "%f,%f,%f,%f,%f,%f,%f",
-                            &base[i].x,
-                            &base[i].y,
-                            &base[i].z,
-                            &base[i].vx,
-                            &base[i].vy,
-                            &base[i].vz,
-                            &base[i].mass);
-
-        if (result != 7)
-        {
-            printf("Invalid CSV format at line %d\n", i);
-            exit(1);
-        }
-
-        base[i].ax = base[i].ay = base[i].az = 0.0f;
-    }
-
-    fclose(file);
-
-    // Repeat the 1000 input particles if N is larger
-    for (int i = 0; i < n; i++)
-    {
-        particles[i] = base[i % INPUT_SIZE];
-
-        particles[i].ax = 0.0f;
-        particles[i].ay = 0.0f;
-        particles[i].az = 0.0f;
-    }
-}
-void save_results(struct Particle particles[], int n, const char *filename)
-{
-    FILE *file = fopen(filename, "w");
-
-    if (file == NULL)
-    {
-        printf("Error opening output file\n");
-        return;
-    }
-
-    fprintf(file, "ax,ay,az\n");
-
-    for (int i = 0; i < n; i++)
-    {
-        fprintf(file, "%e,%e,%e\n",
-                particles[i].ax,
-                particles[i].ay,
-                particles[i].az);
-    }
-
-    fclose(file);
-}
-
-void save_time(double time, int n, const char *filename)
-{
-    FILE *file = fopen(filename, "a");
-
-    if (file == NULL)
-    {
-        printf("Error opening output file\n");
-        return;
-    }
-
-    fprintf(file, "%d,%e\n",
-            n, time);
-
-    fclose(file);
-}
 
 __global__ void compute_forces(struct Arg p, int num_particles)
 {
@@ -168,13 +80,44 @@ __global__ void compute_forces(struct Arg p, int num_particles)
 int main()
 {
 
-    struct Particle *d_particles;
+   struct Particle *d_particles;
     struct Arg argument;
 
     argument.G = G;
     argument.EPS = EPS;
+  
+    size_t totalRead = 0;
 
-    load_input(particles, N, "../input_1000.csv");
+while (totalRead < N)
+{
+    size_t count = fread(
+        particles + totalRead,
+        sizeof(struct Particle),
+        N - totalRead,
+        stdin
+    );
+
+    if (count == 0)
+    {
+        if (feof(stdin))
+        {
+            fprintf(stderr,
+                    "Unexpected EOF: received %zu of %d particles\n",
+                    totalRead,
+                    N);
+        }
+        else if (ferror(stdin))
+        {
+            perror("Failed to read particles");
+        }
+
+        return EXIT_FAILURE;
+    }
+
+    totalRead += count;
+}
+  
+    // load_input(particles, N, "../input_1000.csv");
 
 
     // change the value of d_particles pointer to a address of gpu
