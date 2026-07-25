@@ -43,4 +43,38 @@ const generateParticles = (num) => {
   return particles;
 };
 
-export default generateParticles;
+const serializeParticles=(particles,valuesPerParticle)=>{
+  const data = new Float32Array(particles.length * valuesPerParticle);
+
+particles.forEach((particle, i) => {
+  const offset = i * valuesPerParticle;
+
+  data[offset] = particle.mass;
+  data[offset + 1] = particle.radius;
+
+  data[offset + 2] = particle.x;
+  data[offset + 3] = particle.y;
+  data[offset + 4] = particle.z;
+
+  data[offset + 5] = particle.vx;
+  data[offset + 6] = particle.vy;
+  data[offset + 7] = particle.vz;
+
+  data[offset + 8] = particle.ax;
+  data[offset + 9] = particle.ay;
+  data[offset + 10] = particle.az;
+});
+ return data;
+}
+
+const deserializeParticles=async (blob,valuesPerParticle)=>{
+  const buffer =await blob.arrayBuffer();
+
+  const particles = new Float32Array(
+      buffer
+    );
+
+ return particles;
+}
+
+export {generateParticles,serializeParticles,deserializeParticles};

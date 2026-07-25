@@ -1,48 +1,23 @@
 import * as Three from "three";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import generateParticles from "./utils";
+import {deserializeParticles, generateParticles,serializeParticles} from "./utils";
 
 const particles = generateParticles(1000);
 const ws = new WebSocket('ws://localhost:8081');
+
 const valuesPerParticle = 11;
-const data = new Float32Array(particles.length * valuesPerParticle);
 
-particles.forEach((particle, i) => {
-  const offset = i * valuesPerParticle;
-
-  data[offset] = particle.mass;
-  data[offset + 1] = particle.radius;
-
-  data[offset + 2] = particle.x;
-  data[offset + 3] = particle.y;
-  data[offset + 4] = particle.z;
-
-  data[offset + 5] = particle.vx;
-  data[offset + 6] = particle.vy;
-  data[offset + 7] = particle.vz;
-
-  data[offset + 8] = particle.ax;
-  data[offset + 9] = particle.ay;
-  data[offset + 10] = particle.az;
-});
-console.log("Data " ,data);
-console.log("data buffer " ,data.buffer)
+const data = serializeParticles(particles, valuesPerParticle);
 
 ws.onopen = () => {
   console.log('Connected to server');
   ws.send(data.buffer)
 };
-ws.on("particles", (particles) => {
-  console.log(particles);
+ 
+ws.onmessage =async (event) => {
+  const particles = await deserializeParticles(event.data)
+  console.log("event data", particles);
 
-  particles.forEach((p, i) => {
-    console.log(
-      `Particle ${i}: (${p.x}, ${p.y}, ${p.z})`
-    );
-  });
-});
-ws.onmessage = (event) => {
-  console.log("event data", event.data);
 };
 
 ws.onclose = () => {
