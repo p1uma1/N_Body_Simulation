@@ -30,11 +30,11 @@ child.on("close", (code, signal) => {
     buffer.byteOffset,
     buffer.length / Float32Array.BYTES_PER_ELEMENT
   );
-  
+  particles.forEach(particle=>console.log("x , y : " ,particle))
   server.emit("particles",particles)
 });
 
-const input = Buffer.alloc(4*1000*11); //byte size
+
 // input.writeFloatLE(value);
 
 // console.log(input);
@@ -46,26 +46,11 @@ const input = Buffer.alloc(4*1000*11); //byte size
 server.on('connection', (socket) => {
     console.log('Client connected');
 
-    socket.on('message', (message) => {
-      let i =0;
-      message.forEach((object)=>{
+    socket.on('message', (message,isBinary) => {
+      console.log("is binary: ",isBinary)
 
-        input.writeFloatLE(object.mass);
-        input.writeFloatLE(object.radius);
-        input.writeFloatLE(object.x);
-        input.writeFloatLE(object.y);
-        input.writeFloatLE(object.z);
-        input.writeFloatLE(object.vx);
-        input.writeFloatLE(object.vy);
-        input.writeFloatLE(object.vz);
-        input.writeFloatLE(object.ax);
-        input.writeFloatLE(object.ay);
-        input.writeFloatLE(object.az);
-        
-      })
-      
-      child.stdin.write(input); 
-      child.stdin.end();
+      const buffer = Buffer.from(message);
+      child.stdin.write(message); 
     });
 
     socket.on('close', () => {
