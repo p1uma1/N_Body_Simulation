@@ -43,38 +43,62 @@ const generateParticles = (num) => {
   return particles;
 };
 
-const serializeParticles=(particles,valuesPerParticle)=>{
+const serializeParticles = (particles, valuesPerParticle) => {
   const data = new Float32Array(particles.length * valuesPerParticle);
 
-particles.forEach((particle, i) => {
-  const offset = i * valuesPerParticle;
+  particles.forEach((particle, i) => {
+    const offset = i * valuesPerParticle;
 
-  data[offset] = particle.mass;
-  data[offset + 1] = particle.radius;
+    data[offset] = particle.mass;
+    data[offset + 1] = particle.radius;
 
-  data[offset + 2] = particle.x;
-  data[offset + 3] = particle.y;
-  data[offset + 4] = particle.z;
+    data[offset + 2] = particle.x;
+    data[offset + 3] = particle.y;
+    data[offset + 4] = particle.z;
 
-  data[offset + 5] = particle.vx;
-  data[offset + 6] = particle.vy;
-  data[offset + 7] = particle.vz;
+    data[offset + 5] = particle.vx;
+    data[offset + 6] = particle.vy;
+    data[offset + 7] = particle.vz;
 
-  data[offset + 8] = particle.ax;
-  data[offset + 9] = particle.ay;
-  data[offset + 10] = particle.az;
-});
- return data;
+    data[offset + 8] = particle.ax;
+    data[offset + 9] = particle.ay;
+    data[offset + 10] = particle.az;
+  });
+  return data;
 }
 
-const deserializeParticles=async (blob,valuesPerParticle)=>{
-  const buffer =await blob.arrayBuffer();
+const deserializeParticles = async (blob, valuesPerParticle) => {
+  const buffer = await blob.arrayBuffer();
 
   const particles = new Float32Array(
-      buffer
-    );
+    buffer
+  );
 
- return particles;
+  return particles;
 }
 
-export {generateParticles,serializeParticles,deserializeParticles};
+const convertToJson = (floatArray, numofParticles) => {
+  const particles = []
+  const valuesPerParticle = 11;
+
+  for (let i = 0; i < numofParticles; i++) {
+    const offset = i * valuesPerParticle;
+
+    particles.push({
+      mass: floatArray[offset],
+      radius: floatArray[offset + 1],
+      x: floatArray[offset + 2],
+      y: floatArray[offset + 3],
+      z: floatArray[offset + 4],
+      vx: floatArray[offset + 5],
+      vy: floatArray[offset + 6],
+      vz: floatArray[offset + 7],
+      ax: floatArray[offset + 8],
+      ay: floatArray[offset + 9],
+      az: floatArray[offset + 10]
+    });
+  }
+  return particles;
+}
+
+export { generateParticles, serializeParticles, deserializeParticles, convertToJson };

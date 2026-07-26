@@ -1,8 +1,9 @@
 import * as Three from "three";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import {deserializeParticles, generateParticles,serializeParticles} from "./utils";
+import {deserializeParticles, generateParticles,serializeParticles, convertToJson} from "./utils";
 
 const particles = generateParticles(1000);
+console.log("particles ",particles)
 const ws = new WebSocket('ws://localhost:8081');
 
 const valuesPerParticle = 11;
@@ -15,8 +16,8 @@ ws.onopen = () => {
 };
  
 ws.onmessage =async (event) => {
-  const particles = await deserializeParticles(event.data)
-  console.log("event data", particles);
+  const floatArray = await deserializeParticles(event.data)
+  console.log("event data", convertToJson(floatArray,1000));
 
 };
 
