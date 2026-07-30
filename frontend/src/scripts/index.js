@@ -2,7 +2,7 @@ import * as Three from "three";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {deserializeParticles, generateParticles,serializeParticles, convertToJson} from "./utils";
 
-const particles = generateParticles(1000);
+let particles = generateParticles(1000);
 console.log("particles ",particles)
 const ws = new WebSocket('ws://localhost:8081');
 
@@ -17,7 +17,7 @@ ws.onopen = () => {
  
 ws.onmessage =async (event) => {
   const floatArray = await deserializeParticles(event.data)
-  console.log("event data", convertToJson(floatArray,1000));
+  particles = convertToJson(floatArray,1000);
 
 };
 
@@ -92,13 +92,14 @@ renderer.setAnimationLoop(() => {
   controls.update();
   i = 0;
 
-  particles.forEach(
-    (particle) => {
+  for (let i = 0; i < 1000; i++) {
+    const particle = particles[i];
+    const planet = planets[i];
 
-      planets[i].translateX(particle.vx);
-      planets[i].translateY(particle.vy);
-      planets[i].translateZ(particle.vz);
-      i++
-    })
+    planet.position.x = particle.x;
+    planet.position.y = particle.y;
+    planet.position.z = particle.z;
+  }
+
   renderer.render(scene, camera);
 });

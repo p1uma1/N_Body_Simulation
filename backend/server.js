@@ -42,21 +42,22 @@ server.on('connection', (socket) => {
 
   child.on("close", (code, signal) => {
     console.log(`Child closed: code=${code}, signal=${signal}`);
-    const buffer = Buffer.concat(chunks);
-    particles = new Float32Array(
-      buffer.buffer,
-      buffer.byteOffset,
-      buffer.length / Float32Array.BYTES_PER_ELEMENT
-    );
-    socket.send(buffer)
+
   });
   child.stdout.on("data", chunk => {
     chunkLength += chunk.length
     chunks.push(chunk);
     if (chunkLength >= numParticles * 4 * 11) {
-      console.log("chunks full")
+      console.log("chunks full");
+      const buffer = Buffer.concat(chunks);
+      particles = new Float32Array(
+        buffer.buffer,
+        buffer.byteOffset,
+        buffer.length / Float32Array.BYTES_PER_ELEMENT
+      );
+      socket.send(buffer);
+      chunks = [];
     }
-    server.emit()
   })
 });
 
