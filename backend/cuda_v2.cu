@@ -73,12 +73,12 @@ __global__ void compute_forces(struct Arg p, int num_particles)
         particles[i].ax = G_d * acc_x;
         particles[i].ay = G_d * acc_y;
         particles[i].az = G_d * acc_z;
-        particles[i].vx += acc_x; // acc_x * dt
-        particles[i].vy += acc_y;
-        particles[i].vz += acc_z;
-        particles[i].x += particles[i].vx;
-        particles[i].y += particles[i].vy;
-        particles[i].z += particles[i].vz;
+        // particles[i].vx += acc_x; // acc_x * dt
+        // particles[i].vy += acc_y;
+        // particles[i].vz += acc_z;
+        // particles[i].x += particles[i].vx;
+        // particles[i].y += particles[i].vy;
+        // particles[i].z += particles[i].vz;
         // printf("acce_x for particle %d is %e\n",i,particles[i].ax);
     }
 }

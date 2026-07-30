@@ -57,6 +57,7 @@ server.on('connection', (socket) => {
       );
       socket.send(buffer);
       chunks = [];
+      chunkLength = 0;
     }
   })
 });
