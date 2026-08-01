@@ -7,6 +7,10 @@
 #define N 1000
 #define NUM_THREADS 1024
 
+#define MASS_SCALE 1e18;
+#define POSITION_SCALE 1e6;
+#define VELOCITY_SCALE 5e3;
+
 using Clock = std::chrono::steady_clock;
 
 const int iterations = (N + NUM_THREADS - 1) / NUM_THREADS; // ceil
@@ -17,6 +21,8 @@ int blocksPerGrid =
 
 const float G = 6.674e-11f;
 const float EPS = 1e-9f;
+
+
 
 struct Particle
 {
@@ -56,31 +62,43 @@ __global__ void compute_forces(struct Arg p, int num_particles)
         {
             if (i == j)
                 continue;
-            float dx = particles[j].x - particles[i].x;
+            float dx = (particles[j].x - particles[i].x);
             float dy = particles[j].y - particles[i].y;
             float dz = particles[j].z - particles[i].z;
 
-            float distSq = dx * dx + dy * dy + dz * dz + EPS_d;
+            float distSq = dx * dx + dy * dy + dz * dz + EPS_d;  
             float distInv = rsqrtf(distSq);
-            float distInv3 = distInv * distInv * distInv;
+            float distInv3 = distInv * distInv * distInv;  //GM/R^2 * x/[x] = GM/R^3 vector for each direction
 
             float s = particles[j].mass * distInv3;
-            acc_x += dx * s;
-            acc_y += dy * s;
-            acc_z += dz * s;
+
+            //1e6 = MASS_SCALE/POSITION_SCALE^2 ; this will produce the values in SI measurements (ms^-2)
+            acc_x += dx * s * 1e6;  
+            acc_y += dy * s * 1e6;
+            acc_z += dz * s * 1e6;
         }
 
-        particles[i].ax = G_d * acc_x;
-        particles[i].ay = G_d * acc_y;
-        particles[i].az = G_d * acc_z;
-        // particles[i].vx += acc_x; // acc_x * dt
-        // particles[i].vy += acc_y;
-        // particles[i].vz += acc_z;
-        // particles[i].x += particles[i].vx;
-        // particles[i].y += particles[i].vy;
-        // particles[i].z += particles[i].vz;
-        // printf("acce_x for particle %d is %e\n",i,particles[i].ax);
+        //scale back to three js
+        particles[i].ax = G_d * acc_x * 1e-6;
+        particles[i].ay = G_d * acc_y * 1e-6;
+        particles[i].az = G_d * acc_z * 1e-6;
+
     }
+}
+
+__global__ void update_vectors(struct Particle *particles, int num_particles, double interval)
+{
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (tid >= num_particles)
+        return;
+
+    particles[tid].vx += particles[tid].ax * interval;// acc_x * dt
+    particles[tid].vy += particles[tid].ay * interval;
+    particles[tid].vz += particles[tid].az * interval;
+    particles[tid].x += particles[tid].vx * interval;
+    particles[tid].y += particles[tid].vy * interval;
+    particles[tid].z += particles[tid].vz * interval;
 }
 
 int main()
@@ -136,11 +154,17 @@ int main()
     cudaDeviceSynchronize();
 
     cudaMemcpy(particles, d_particles, N * sizeof(Particle), cudaMemcpyDeviceToHost);
-    fwrite(particles, sizeof(Particle), N, stdout);
-
     const auto outputInterval =
         std::chrono::duration_cast<Clock::duration>(
             std::chrono::duration<double>(1.0 / 60.0));
+            
+    float interval =
+    std::chrono::duration<float>(outputInterval).count();
+
+    update_vectors<<<blocksPerGrid,threadsPerBlock>>> (d_particles,N,interval);
+    fwrite(particles, sizeof(Particle), N, stdout);
+
+    
 
     auto nextOutputTime = Clock::now() + outputInterval;
 
@@ -148,26 +172,28 @@ int main()
     while (true)
     {
         compute_forces<<<blocksPerGrid, threadsPerBlock>>>(argument, N);
+        cudaDeviceSynchronize();
+
+        update_vectors<<<blocksPerGrid,threadsPerBlock>>> (d_particles,N,interval);
         const auto now = Clock::now();
 
         if (now >= nextOutputTime)
 
-        
         {
-            cudaDeviceSynchronize();
 
+            
             cudaMemcpy(particles, d_particles, N * sizeof(Particle), cudaMemcpyDeviceToHost);
             fwrite(particles, sizeof(Particle), N, stdout);
             fflush(stdout);
-            nextOutputTime+= outputInterval;
+            nextOutputTime += outputInterval;
 
             const auto afterOutputTime = Clock::now();
-            //if the time spent is more than intervalwe have to skip frame/frames
-            while(nextOutputTime<afterOutputTime){
-                nextOutputTime+=outputInterval;
+            // if the time spent is more than intervalwe have to skip frame/frames
+            while (nextOutputTime < afterOutputTime)
+            {
+                nextOutputTime += outputInterval;
             }
         }
-
     }
 
     return 0;

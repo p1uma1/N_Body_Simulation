@@ -43,6 +43,63 @@ const generateParticles = (num) => {
   return particles;
 };
 
+const generateParticlesWithStar = (num) => {
+  const particles = [];
+
+  const massMin = 1;
+  const massMax = 100;
+  const spaceSize = 50;
+  const velocityRange = 0.05;
+
+  for (let i = 0; i < num-1; i++) {
+    const mass = randomRange(massMin, massMax);
+    const radius = Math.cbrt(mass) * 0.3;
+
+    const x = randomRange(-spaceSize, spaceSize);
+    const y = randomRange(-spaceSize, spaceSize);
+    const z = randomRange(-spaceSize, spaceSize);
+
+    const vx = randomRange(-velocityRange, velocityRange);
+    const vy = randomRange(-velocityRange, velocityRange);
+    const vz = randomRange(-velocityRange, velocityRange);
+
+    particles.push({
+      mass,
+      radius,
+
+      x:0,
+      y:0,
+      z:0,
+
+      vx:0,
+      vy:0,
+      vz:0,
+
+      ax: 0,
+      ay: 0,
+      az: 0
+    });
+    particles.push({
+      mass:10000,
+      radius:2.5,
+
+      x,
+      y,
+      z,
+
+      vx,
+      vy,
+      vz,
+
+      ax: 0,
+      ay: 0,
+      az: 0
+    });
+  }
+
+  return particles;
+};
+
 const serializeParticles = (particles, valuesPerParticle) => {
   const data = new Float32Array(particles.length * valuesPerParticle);
 
