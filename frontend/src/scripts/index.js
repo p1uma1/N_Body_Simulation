@@ -1,9 +1,10 @@
 import * as Three from "three";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import {deserializeParticles, generateParticles,serializeParticles, convertToJson} from "./utils";
+import { deserializeParticles, generateParticles, serializeParticles, convertToJson, generateParticlesWithStar } from "./utils";
 
-let particles = generateParticles(1000);
-console.log("particles ",particles)
+let particles = generateParticlesWithStar(1000);
+
+console.log("particles ", particles)
 const ws = new WebSocket('ws://localhost:8081');
 
 const valuesPerParticle = 11;
@@ -14,10 +15,10 @@ ws.onopen = () => {
   console.log('Connected to server');
   ws.send(data.buffer)
 };
- 
-ws.onmessage =async (event) => {
+
+ws.onmessage = async (event) => {
   const floatArray = await deserializeParticles(event.data)
-  particles = convertToJson(floatArray,1000);
+  particles = convertToJson(floatArray, 1000);
 
 };
 
@@ -42,12 +43,16 @@ const renderer = new Three.WebGLRenderer({
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-const ambientLight = new Three.AmbientLight(0xffffff, 0.4);
-scene.add(ambientLight);
+const light = new Three.PointLight(
+  0xffffff,
+  500,
+  100
+);
+scene.add(light);
 
-const directionalLight = new Three.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(0, 0, 0);
-scene.add(directionalLight);
+// const directionalLight = new Three.DirectionalLight(0xffffff, 1);
+// directionalLight.position.set(0, 0, 0);
+// scene.add(directionalLight);
 
 const dirX = new Three.Vector3(1, 0, 0);
 const dirY = new Three.Vector3(0, 1, 0);
@@ -63,14 +68,20 @@ arrowHelpers.forEach((arrow) => {
 })
 
 const planets = []
-
-
+const textureLoader = new Three.TextureLoader();
+const planetTexture = textureLoader.load(
+  "/textures/planet_texture.jpg",
+  () => console.log("Sun texture loaded"),
+  undefined,
+  (error) => console.error("Texture error:", error)
+);
 let i = 0;
 particles.forEach(
-  (particle) => {
+  (particle, index) => {
     const geometry = new Three.SphereGeometry(particle.radius, 10, 10);
     const material = new Three.MeshStandardMaterial({
-      color: 0x00ff00
+      map:planetTexture,
+      color: Math.random() * 0xffffff
     });
     const cylinder = new Three.Mesh(geometry, material);
     cylinder.translateX(particle.x);
@@ -80,6 +91,29 @@ particles.forEach(
     scene.add(planets[i])
     i++;
   })
+
+const sunIndex = planets.length - 1;
+
+const geometry = new Three.SphereGeometry(particles[sunIndex].radius, 100, 100);
+
+
+const sunTexture = textureLoader.load(
+  
+  "/textures/sun_texture.jpg",
+  () => console.log("Sun texture loaded"),
+  undefined,
+  (error) => console.error("Texture error:", error)
+);
+console.log("texture: ",sunTexture)
+const material = new Three.MeshBasicMaterial({
+  map: sunTexture,
+  color: 0xfff900
+});
+
+const cylinder = new Three.Mesh(geometry, material);
+scene.remove(planets[sunIndex]);
+scene.add(cylinder);
+planets[sunIndex] = cylinder;
 
 
 

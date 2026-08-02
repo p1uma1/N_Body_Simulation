@@ -49,11 +49,12 @@ const generateParticlesWithStar = (num) => {
   const massMin = 1;
   const massMax = 100;
   const spaceSize = 50;
-  const velocityRange = 0.05;
+  // const velocityRange = 0.00025;  /realistic value
+  const velocityRange = 0.005;
 
   for (let i = 0; i < num-1; i++) {
     const mass = randomRange(massMin, massMax);
-    const radius = Math.cbrt(mass) * 0.3;
+    const radius = Math.cbrt(mass) * 0.1;
 
     const x = randomRange(-spaceSize, spaceSize);
     const y = randomRange(-spaceSize, spaceSize);
@@ -66,22 +67,6 @@ const generateParticlesWithStar = (num) => {
     particles.push({
       mass,
       radius,
-
-      x:0,
-      y:0,
-      z:0,
-
-      vx:0,
-      vy:0,
-      vz:0,
-
-      ax: 0,
-      ay: 0,
-      az: 0
-    });
-    particles.push({
-      mass:10000,
-      radius:2.5,
 
       x,
       y,
@@ -96,6 +81,22 @@ const generateParticlesWithStar = (num) => {
       az: 0
     });
   }
+  particles.push({
+      mass:1000000,
+      radius:2.5,
+
+      x:0,
+      y:0,
+      z:0,
+
+      vx:0,
+      vy:0,
+      vz:0,
+
+      ax: 0,
+      ay: 0,
+      az: 0
+    });
 
   return particles;
 };
@@ -158,4 +159,4 @@ const convertToJson = (floatArray, numofParticles) => {
   return particles;
 }
 
-export { generateParticles, serializeParticles, deserializeParticles, convertToJson };
+export { generateParticles,generateParticlesWithStar, serializeParticles, deserializeParticles, convertToJson };
