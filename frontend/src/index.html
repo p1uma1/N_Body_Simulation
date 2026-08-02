@@ -1,18 +1,61 @@
 <!DOCTYPE html>
 <html lang="si">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>N-Body Simulation</title>
-        <link rel="stylesheet" href="./index.css" />
-    </head>
-    <nav>
-        <h1>SIMULATOR</h1>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>N-Body Simulation</title>
+    <link rel="stylesheet" href="./index.css" />
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="#" class="brand">
+            <span class="brand-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+
+                    <ellipse cx="12" cy="12" rx="9" ry="4" stroke="currentColor" stroke-width="1.5" />
+
+                    <ellipse cx="12" cy="12" rx="4" ry="9" stroke="currentColor" stroke-width="1.5"
+                        transform="rotate(45 12 12)" />
+                </svg>
+            </span>
+
+            <h1>SIMULATOR</h1>
+        </a>
+
+        <ul class="nav-links">
+            <li>
+                <a href="#" class="active">Home</a>
+            </li>
+
+            <li>
+                <a href="#simulation">Simulation</a>
+            </li>
+
+            <li>
+                <a href="#about">About</a>
+            </li>
+        </ul>
+
+        <button class="launch-button">
+            Launch
+        </button>
     </nav>
-    
     <div id="canvas_container" class="canvas_container">
-    <canvas id="webgl"></canvas>
+        <div id="canvas_container" class="canvas-container">
+            <canvas id="webgl"></canvas>
+
+            <div class="orientation-box">
+                <canvas id="orientation-canvas"></canvas>
+            </div>
+        </div>
     </div>
     <script type="module" src="./scripts/index.js"></script>
     <style></style>
+</body>
+
+
+
 </html>

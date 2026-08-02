@@ -54,18 +54,7 @@ scene.add(light);
 // directionalLight.position.set(0, 0, 0);
 // scene.add(directionalLight);
 
-const dirX = new Three.Vector3(1, 0, 0);
-const dirY = new Three.Vector3(0, 1, 0);
-const dirZ = new Three.Vector3(0, 0, 1);
 
-const origin = new Three.Vector3(20, 20, 0);
-const length = 10;
-const hex = 0xffff00;
-const arrowHelpers = [new Three.ArrowHelper(dirX, origin, length, hex), new Three.ArrowHelper(dirY, origin, length, hex), new Three.ArrowHelper(dirZ, origin, length, hex)]
-
-arrowHelpers.forEach((arrow) => {
-  scene.add(arrow);
-})
 
 const planets = []
 const textureLoader = new Three.TextureLoader();
@@ -80,7 +69,7 @@ particles.forEach(
   (particle, index) => {
     const geometry = new Three.SphereGeometry(particle.radius, 10, 10);
     const material = new Three.MeshStandardMaterial({
-      map:planetTexture,
+      map: planetTexture,
       color: Math.random() * 0xffffff
     });
     const cylinder = new Three.Mesh(geometry, material);
@@ -98,13 +87,13 @@ const geometry = new Three.SphereGeometry(particles[sunIndex].radius, 100, 100);
 
 
 const sunTexture = textureLoader.load(
-  
+
   "/textures/sun_texture.jpg",
   () => console.log("Sun texture loaded"),
   undefined,
   (error) => console.error("Texture error:", error)
 );
-console.log("texture: ",sunTexture)
+console.log("texture: ", sunTexture)
 const material = new Three.MeshBasicMaterial({
   map: sunTexture,
   color: 0xfff900
@@ -121,6 +110,66 @@ camera.position.z = 20;
 0
 const controls = new OrbitControls(camera, renderer.domElement)
 
+
+const orientationCanvas = document.querySelector("#orientation-canvas");
+
+const orientationRenderer = new Three.WebGLRenderer({
+    canvas: orientationCanvas,
+    alpha: true,
+    antialias: true
+});
+
+orientationRenderer.setPixelRatio(
+    Math.min(window.devicePixelRatio, 2)
+);
+
+orientationRenderer.setSize(110, 110, false);
+
+const orientationScene = new Three.Scene();
+
+const orientationCamera = new Three.PerspectiveCamera(
+    35,
+    1,
+    0.1,
+    100
+);
+
+orientationCamera.position.set(0, 0, 5);
+
+const cubeGeometry = new Three.BoxGeometry(1.5, 1.5, 1.5);
+
+const cubeMaterials = [
+    new Three.MeshBasicMaterial({ color: 0xdddddd }),
+    new Three.MeshBasicMaterial({ color: 0x888888 }),
+    new Three.MeshBasicMaterial({ color: 0xbbbbbb }),
+    new Three.MeshBasicMaterial({ color: 0x666666 }),
+    new Three.MeshBasicMaterial({ color: 0xaaaaaa }),
+    new Three.MeshBasicMaterial({ color: 0x444444 })
+];
+
+const orientationCube = new Three.Mesh(
+    cubeGeometry,
+    cubeMaterials
+);
+
+orientationScene.add(orientationCube);
+
+const edgesGeometry = new Three.EdgesGeometry(cubeGeometry);
+
+const edgesMaterial = new Three.LineBasicMaterial({
+    color: 0xffffff
+});
+
+const cubeEdges = new Three.LineSegments(
+    edgesGeometry,
+    edgesMaterial
+);
+
+orientationCube.add(cubeEdges);
+const axesHelper = new Three.AxesHelper(1.4);
+orientationCube.add(axesHelper);
+
+
 // Animation loop
 renderer.setAnimationLoop(() => {
   controls.update();
@@ -134,6 +183,13 @@ renderer.setAnimationLoop(() => {
     planet.position.y = particle.y;
     planet.position.z = particle.z;
   }
-
+  
   renderer.render(scene, camera);
+      orientationCube.quaternion.copy(camera.quaternion).invert();
+
+    orientationRenderer.render(
+        orientationScene,
+        orientationCamera
+    );
 });
+
